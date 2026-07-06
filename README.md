@@ -1,6 +1,6 @@
-# SSH Client for M5Cardputer-Adv
+# SSH Client for M5Cardputer-Adv + ILI9341
 
-A full-featured SSH client for the [M5Stack Cardputer](https://docs.m5stack.com/en/core/Cardputer) (ESP32-S3), with WireGuard VPN support, multi-profile management, and an ANSI terminal emulator.
+A full-featured SSH client for the [M5Stack Cardputer-Adv](https://docs.m5stack.com/en/core/Cardputer) (ESP32-S3) using an external 2.8" ILI9341 SPI display (320×240), with WireGuard VPN support, multi-profile management, and an ANSI terminal emulator.
 
 
 ---
@@ -11,7 +11,8 @@ A full-featured SSH client for the [M5Stack Cardputer](https://docs.m5stack.com/
 - **WireGuard VPN** — per-profile tunnel with seamless config switching via `ESP.restart()` and RTC memory auto-resume
 - **Multiple SSH profiles** — stored on SD card, each with its own host, user, port, and optional WireGuard config
 - **WireGuard config import** — drop standard `.conf` files onto the SD card, pick them from a menu
-- **Two font sizes** — toggle in-session with `Fn+F` (40×14 or 20×7 characters)
+- **Two font sizes** — toggle in-session with `Fn+F` (53×25 or 26×12 characters on the external display)
+- **Dual-display status** — the external ILI9341 shows menus/terminal while the built-in Cardputer LCD shows battery, WiFi, IP, mode, SSH target, session timer, WireGuard state, heap, and clock
 - **WiFi manager** — scan, connect, save credentials; auto-connect on boot
 - **Settings** — screen timeout, SSH idle timeout, brightness, keep-alive, password display mode
 - **Remembered usernames** — recently used SSH usernames offered as quick picks
@@ -23,8 +24,28 @@ A full-featured SSH client for the [M5Stack Cardputer](https://docs.m5stack.com/
 | | |
 |---|---|
 | **Board** | M5Stack Cardputer (ESP32-S3, 4 MB flash) |
+| **Display** | External 2.8" ILI9341 SPI display, 320×240 |
+| **Status display** | Built-in Cardputer LCD, used as a live status panel |
 | **Storage** | microSD card (FAT32) |
 | **Quit session** | `Fn+Q` or the **G0** side button |
+
+### ILI9341 Wiring
+
+Cardputer-Adv EXT connector to ILI9341:
+
+| ILI9341 | Cardputer-Adv EXT | GPIO | Notes |
+|---|---:|---:|---|
+| VCC | PIN 15 | - | 3.3 V |
+| GND | PIN 11 | - | Ground |
+| CS | PIN 13 | G5 | LCD chip select |
+| RST / RESET | PIN 1 | G3 | LCD reset |
+| DC / RS | PIN 5 | G6 | Data/command |
+| SDI / MOSI | PIN 9 | G14 | SPI MOSI |
+| SCK / CLK | PIN 7 | G40 | SPI clock |
+| LED / BLK | 3.3 V | - | Backlight always on |
+| SDO / MISO | - | - | Not used by LCD |
+
+The LCD and the Cardputer-Adv SD card share SPI3. SD card CS is GPIO 12.
 
 ---
 
@@ -46,7 +67,7 @@ A full-featured SSH client for the [M5Stack Cardputer](https://docs.m5stack.com/
 | M5Stack board manager | ≥ 3.2.6 (ESP-IDF 5.4) |
 | M5Cardputer | ≥ 1.1.1 |
 | M5Unified | ≥ 0.2.8 |
-| M5GFX | ≥ 0.2.10 |
+| M5GFX | ≥ 0.2.17 |
 | WireGuard-ESP32-bis | ZIP from [issue #45](https://github.com/ciniml/WireGuard-ESP32-Arduino/issues/45) |
 | LibSSH-ESP32 | ZIP from [github.com/ewpa/LibSSH-ESP32](https://github.com/ewpa/LibSSH-ESP32) |
 
@@ -103,7 +124,7 @@ The Cardputer-Adv requires manual download mode:
 | All keys | Type normally |
 | `Fn + ; . , /` | Arrow keys (↑ ↓ ← →) |
 | `Fn + Q` | Quit session |
-| `Fn + F` | Toggle font size (40×14 ↔ 20×7) |
+| `Fn + F` | Toggle font size (53×25 ↔ 26×12) |
 | `Ctrl + letter` | Send control character (`^C`, `^D`, `^Z` …) |
 | `Ctrl + [` | Send ESC (for vim) |
 | `Tab` | Tab / shell completion |
@@ -129,8 +150,9 @@ Supported escape sequences:
 - Erase: `ESC[J` (screen), `ESC[K` (line)
 - Insert/delete: `ESC[L/M/P/@`
 - Scroll region: `ESC[r`, `ESC[S/T`
-- SGR colours: full 8-colour ANSI (normal + bright), bold, reverse
+- SGR colours: 16-colour ANSI, bold, reverse, 256-colour and truecolor approximation
 - Alternate screen buffer: `ESC[?1049h/l` — nano, htop, vim work correctly
+- Cursor show/hide: `ESC[?25h/l`
 - Save/restore cursor: `ESC[s/u`, `ESC 7/8`
 - OSC title sequences silently swallowed
 - UTF-8 decoded; box-drawing characters mapped to ASCII equivalents
@@ -145,6 +167,16 @@ Supported escape sequences:
 4. Upload
 5. Insert a FAT32-formatted microSD card
 6. On first boot the app creates `/SSHAdv/` automatically
+
+### PlatformIO Build
+
+This folder also contains a PlatformIO project:
+
+```bash
+pio run
+```
+
+The generated app binary is `.pio/build/m5stack-cardputer-adv/firmware.bin`.
 
 ---
 

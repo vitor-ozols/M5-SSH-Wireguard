@@ -1,0 +1,10 @@
+.pio/
+.vscode/
+
+.DS_Store
+__MACOSX/
+
+*.bin
+*.elf
+*.map
+*.zip

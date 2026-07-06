@@ -1,0 +1,10 @@
+#include <Arduino.h>
+#include <WiFi.h>
+#include <M5Cardputer.h>
+#include <WireGuard-ESP32.h>
+#include <M5GFX.h>
+#include <SPI.h>
+#include <SD.h>
+#include <FS.h>
+#include <libssh_esp32.h>
+#include "../ssh_client_adv.ino"
